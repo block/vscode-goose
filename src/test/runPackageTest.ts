@@ -17,7 +17,7 @@ async function main() {
         // const packageName = packageJson.name; // Not used for VSIX name construction here
         const packageVersion = packageJson.version;
         // Construct the VSIX name to match the output of the 'package:dist' script
-        const vsixName = `goose-vscode-${packageVersion}.vsix`;
+        const vsixName = `vscode-goose-${packageVersion}.vsix`;
         const vsixDistDir = './dist'; // Relative to project root
         const vsixPath = path.join(vsixDistDir, vsixName); // Expected path after packaging
 
