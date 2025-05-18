@@ -1,6 +1,6 @@
 {
   "name": "vscode-goose",
-  "displayName": "Goose",
+  "displayName": "VS Code Goose",
   "description": "Goose AI for VSCode",
   "version": "0.1.16",
   "repository": {
