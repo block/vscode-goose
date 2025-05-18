@@ -121,8 +121,8 @@ export class GooseViewProvider implements vscode.WebviewViewProvider {
 		webviewView.onDidChangeVisibility(() => {
 			if (this._view && this._view.visible) {
 				logger.debug('[GooseViewProvider] Webview became visible. Re-syncing state.');
-				this.isWebviewReady = true; 
-				
+				this.isWebviewReady = true;
+
 				const currentStatus = this._serverManager.getStatus();
 				this.postMessage({ command: MessageType.SERVER_STATUS, status: currentStatus });
 				this.lastSentStatus = currentStatus;
@@ -131,9 +131,9 @@ export class GooseViewProvider implements vscode.WebviewViewProvider {
 
 				const gooseIconUri = this._view?.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'goose-icon.png'));
 				this.postMessage({ command: MessageType.RESOURCES_READY, resources: { gooseIcon: gooseIconUri?.toString() } });
-				
+
 				this.postMessage({ command: MessageType.SET_EXTENSION_VERSION, version: getExtensionVersion() });
-				
+
 				const activeTheme = vscode.window.activeColorTheme;
 				this.postMessage({ command: MessageType.SET_THEME, theme: this.getShikiTheme(activeTheme.kind) });
 			} else {
@@ -146,7 +146,7 @@ export class GooseViewProvider implements vscode.WebviewViewProvider {
 		this._serverManager.on(ServerEvents.STATUS_CHANGE, (newStatus: ServerStatus) => {
 			if (newStatus !== this.lastSentStatus) {
 				// logger.debug(`Server status changed to ${newStatus}. Last sent was ${this.lastSentStatus}. Sending update.`);
-				this.postMessage({ 
+				this.postMessage({
 					command: MessageType.SERVER_STATUS,
 					status: newStatus
 				});
@@ -208,7 +208,7 @@ export class GooseViewProvider implements vscode.WebviewViewProvider {
 					command: MessageType.SET_EXTENSION_VERSION,
 					version: extensionVersion
 				});
-				
+
 				// Create and send proper webview URIs for resources
 				const gooseIconUri = this._view?.webview.asWebviewUri(
 					vscode.Uri.joinPath(this._extensionUri, 'resources', 'goose-icon.png')
@@ -886,7 +886,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register command to open settings
 	const openSettingsDisposable = vscode.commands.registerCommand('goose.openSettings', () => {
-		vscode.commands.executeCommand('workbench.action.openSettings', '@ext:prempillai.wingman-goose');
+		// Construct the search query for the extension settings
+		// The format `@ext:` is used to filter settings by a specific extension
+		vscode.commands.executeCommand('workbench.action.openSettings', '@ext:block.vscode-goose');
 	});
 
 	// Register command to ask about selected code

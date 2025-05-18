@@ -1,6 +1,6 @@
-# codename goose - VS Code Extension
+# Goose - VS Code Extension
 
-[codename goose](https://block.github.io/goose/) is an open-source, on-device AI agent that runs locally, works with any LLM provider you configure, and can autonomously tackle full-stack engineering tasks from debugging to deployment. By embedding Goose directly inside VS Code, this extension lets you ask questions, refactor code, generate tests, or spin up entire features without ever leaving your editor. Keep your code in your editor, choose the model that suits you, and let Goose handle the heavy lifting so you can stay in flow
+[Goose](https://block.github.io/goose/) is an open-source, on-device AI agent that runs locally, works with any LLM provider you configure, and can autonomously tackle full-stack engineering tasks from debugging to deployment. By embedding Goose directly inside VS Code, this extension lets you ask questions, refactor code, generate tests, or spin up entire features without ever leaving your editor. Keep your code in your editor, choose the model that suits you, and let Goose handle the heavy lifting so you can stay in flow
 
 ![Screenshot](./resources/screenshot.png)
 
@@ -37,11 +37,11 @@ Please be aware that this extension is under active development. Some features, 
 There are two ways to install the Goose VS Code Extension:
 
 ### Method 1: Install from VS Code Marketplace (recommended)
-[Install from Market Place](https://marketplace.visualstudio.com/items?itemName=PremPillai.wingman-goose)
+[Install from Market Place](https://marketplace.visualstudio.com/items?itemName=block.vscode-goose)
 
 ### Method 2: Install from GitHub Releases
 
-1. Go to the [GitHub Releases page](https://github.com/cloud-on-prem/goose/releases)
+1. Go to the [GitHub Releases page](https://github.com/block/vscode-goose/releases)
 2. Find the latest release with the tag `vscode-v*`
 3. Download the `.vsix` file
 4. In VS Code, go to the Extensions view (Ctrl+Shift+X)
@@ -92,7 +92,7 @@ This extension contributes the following settings:
 
 ## Support
 
-For support, bug reports, or feature suggestions, please use [GitHub Issues](https://github.com/cloud-on-prem/goose/issues).
+For support, bug reports, or feature suggestions, please use [GitHub Issues](https://github.com/block/vscode-goose/issues).
 
 
 ## Architecture

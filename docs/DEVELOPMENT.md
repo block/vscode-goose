@@ -123,7 +123,7 @@ This project uses **`release-please`** to automate the release process based on 
         *   Checks out the code at the new tag.
         *   Installs dependencies using `npm ci`.
         *   Builds the extension (`npm run compile`).
-        *   Packages the extension into a `.vsix` file (`dist/goose-vscode-vX.Y.Z.vsix`).
+        *   Packages the extension into a `.vsix` file (`dist/vscode-goose-vX.Y.Z.vsix`).
         *   Creates a GitHub Release associated with the tag, uploading the `.vsix` file as an asset.
         *   Publishes the `.vsix` file to the VS Code Marketplace (if `VSCE_PAT` secret is configured).
 
@@ -164,4 +164,4 @@ npm run package:dist
 
 ## Known Issues
 
-Refer to the [GitHub issues page](https://github.com/cloud-on-prem/goose/issues) for any known issues related to the VSCode extension.
+Refer to the [GitHub issues page](https://github.com/block/vscode-goose/issues) for any known issues related to the VSCode extension.

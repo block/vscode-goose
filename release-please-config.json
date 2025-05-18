@@ -3,7 +3,7 @@
     "vscode-extension": {
       "component": "vscode-extension",
       "release-type": "node",
-      "package-name": "wingman-goose",
+      "package-name": "vscode-goose",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,

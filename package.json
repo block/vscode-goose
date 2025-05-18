@@ -1,15 +1,15 @@
 {
-  "name": "wingman-goose",
-  "displayName": "Wingman Goose",
+  "name": "vscode-goose",
+  "displayName": "Goose",
   "description": "Goose AI for VSCode",
   "version": "0.1.16",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cloud-on-prem/wingman"
+    "url": "https://github.com/block/vscode-goose"
   },
   "license": "Apache-2.0",
   "icon": "resources/goose-icon.png",
-  "publisher": "prempillai",
+  "publisher": "block",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -119,7 +119,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "package:dist": "npm run clean && mkdir -p dist && npm run compile && npx @vscode/vsce package --no-yarn -o dist/goose-vscode-$npm_package_version.vsix",
+    "package:dist": "npm run clean && mkdir -p dist && npm run compile && npx @vscode/vsce package --no-yarn -o dist/vscode-goose-$npm_package_version.vsix",
     "package:skip-tests": "npm run clean && npm run compile && npx @vscode/vsce package --no-yarn",
     "package:inspect": "npx @vscode/vsce ls --no-yarn",
     "package:verify": "npx @vscode/vsce ls --tree",

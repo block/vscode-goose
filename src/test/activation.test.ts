@@ -6,7 +6,7 @@ suite('Packaged Extension Activation Test Suite', () => {
 		console.log('Running activation test...');
 
 		// Find the extension by its ID (name in package.json)
-		const extensionId = 'prempillai.wingman-goose'; // Make sure this matches package.json publisher.name
+		const extensionId = 'block.vscode-goose'; // Make sure this matches package.json publisher.name
 		const extension = vscode.extensions.getExtension(extensionId);
 
 		// 1. Check if the extension is present

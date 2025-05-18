@@ -7,10 +7,10 @@ import { logger } from './logger';
  * Gets the extension version from package.json
  * @returns Extension version as a string
  */
-export function getExtensionVersion(): string {
+export function getExtensionVersion(): string | undefined {
     try {
         // Method 1: Using VS Code API
-        const extension = vscode.extensions.getExtension('prempillai.wingman-goose');
+        const extension = vscode.extensions.getExtension('block.vscode-goose');
         if (extension) {
             return extension.packageJSON.version;
         }
@@ -24,9 +24,9 @@ export function getExtensionVersion(): string {
 
         // Fallback value if both methods fail
         logger.warn('Could not determine extension version, using fallback value');
-        return 'unknown';
+        return undefined;
     } catch (error) {
         logger.error('Error retrieving extension version:', error);
-        return 'unknown';
+        return undefined;
     }
 }

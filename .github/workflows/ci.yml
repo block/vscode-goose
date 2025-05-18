@@ -117,7 +117,7 @@ jobs:
       - name: Package Extension
         run: |
           mkdir -p dist
-          PACKAGE_FILENAME="dist/goose-vscode-${{ steps.version.outputs.version }}.vsix"
+          PACKAGE_FILENAME="dist/vscode-goose-${{ steps.version.outputs.version }}.vsix"
           npx @vscode/vsce package --no-yarn -o "$PACKAGE_FILENAME"
           if [ ! -f "$PACKAGE_FILENAME" ]; then
             echo "Failed to create the VSIX package: $PACKAGE_FILENAME"
@@ -139,6 +139,6 @@ jobs:
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: |
-          PACKAGE_FILENAME="dist/goose-vscode-${{ steps.version.outputs.version }}.vsix"
+          PACKAGE_FILENAME="dist/vscode-goose-${{ steps.version.outputs.version }}.vsix"
           echo "Publishing $PACKAGE_FILENAME to VS Code Marketplace..."
           npx @vscode/vsce publish --packagePath "$PACKAGE_FILENAME" --pat $VSCE_PAT
