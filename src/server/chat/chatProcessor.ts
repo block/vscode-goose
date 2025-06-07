@@ -349,79 +349,7 @@ export class ChatProcessor {
         this.eventEmitter.emit(event, ...args);
     }
 
-    private ensureValidTextContent(text: any): string {
-        if (typeof text === 'string') {
-            return text;
-        }
 
-        if (text && typeof text === 'object') {
-            if (typeof text.text === 'string') {
-                return text.text;
-            }
-
-            if (typeof text.content === 'string') {
-                return text.content;
-            }
-
-            if (Array.isArray(text.content)) {
-                const combinedContent = text.content
-                    .map((part: any) => {
-                        if (typeof part === 'string') { return part; }
-                        if (part && typeof part.text === 'string') { return part.text; }
-                        return '';
-                    })
-                    .filter(Boolean)
-                    .join('\n\n');
-
-                if (combinedContent) {
-                    return combinedContent;
-                }
-            }
-
-            if (typeof text.message === 'string') {
-                return text.message;
-            }
-
-            try {
-                const jsonString = JSON.stringify(text);
-                if (jsonString !== '{}' && jsonString !== '[]') {
-                    return jsonString;
-                }
-            } catch (e) {
-                console.error('Failed to stringify object:', e);
-            }
-        }
-
-        if (text !== undefined && text !== null) {
-            try {
-                return String(text);
-            } catch (e) {
-                console.error("Could not convert message content to string:", e);
-            }
-        }
-
-        return "";
-    }
-
-    private handleAIMessage(content: any, messageId: string): Message {
-        const aiMessage: Message = {
-            id: messageId || `ai_${Date.now()}`,
-            role: 'assistant',
-            created: Date.now(),
-            content: []
-        };
-
-        const textContent = this.ensureValidTextContent(content);
-
-        if (textContent) {
-            aiMessage.content.push({
-                type: 'text',
-                text: textContent
-            });
-        }
-
-        return aiMessage;
-    }
 
     private async updateSessionAfterReply(sessionId: string): Promise<void> {
         if (!this.sessionManager) {

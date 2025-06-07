@@ -20,7 +20,7 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
 
     setup(() => {
         testEnv = setupTestEnvironment();
-        
+
         // Set up common mocks
         mockDocument = {
             getText: sinon.stub().returns('Mock file content'),
@@ -29,21 +29,21 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
             languageId: 'typescript',
             lineCount: 50
         };
-        
+
         mockSelection = {
             isEmpty: false,
             start: { line: 0 },
             end: { line: 0 }
         };
-        
+
         mockEditor = {
             document: mockDocument,
             selection: mockSelection
         };
-        
+
         // Mock VS Code window.activeTextEditor
         sinon.stub(vscode.window, 'activeTextEditor').get(() => mockEditor);
-        
+
         // Mock CodeReferenceManager
         mockCodeReferenceManager = {
             getInstance: sinon.stub().returns({
@@ -58,17 +58,17 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
                 })
             })
         };
-        
+
         // Mock the webview provider
         mockWebviewProvider = {
-            sendMessageToWebview: sinon.spy()
+            postMessage: sinon.spy()
         };
-        
+
         // Mock ChatProcessor for message handling
         mockChatProcessor = {
             sendMessage: sinon.spy()
         };
-        
+
         // No need to stub global objects - we'll provide the mock directly to the handler
     });
 
@@ -83,24 +83,24 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
     test('should send entire file as code reference when no selection exists', () => {
         // Setup test: empty selection
         mockSelection.isEmpty = true;
-        
+
         // Execute the askAboutSelection command handler logic
         executeAskAboutSelectionHandler(mockWebviewProvider);
-        
+
         // Verify: ADD_CODE_REFERENCE message sent with file content
-        assert.strictEqual(mockWebviewProvider.sendMessageToWebview.callCount, 2);
-        
-        const firstCall = mockWebviewProvider.sendMessageToWebview.getCall(0);
+        assert.strictEqual(mockWebviewProvider.postMessage.callCount, 2);
+
+        const firstCall = mockWebviewProvider.postMessage.getCall(0);
         assert.strictEqual(firstCall.args[0].command, MessageType.ADD_CODE_REFERENCE);
-        
+
         const codeRef = firstCall.args[0].codeReference;
         assert.strictEqual(codeRef.selectedText, 'Mock file content');
         assert.strictEqual(codeRef.fileName, 'mockFile.ts');
         assert.strictEqual(codeRef.startLine, 1); // 1-based
         assert.strictEqual(codeRef.endLine, 50); // lineCount
-        
+
         // Verify focus message
-        const secondCall = mockWebviewProvider.sendMessageToWebview.getCall(1);
+        const secondCall = mockWebviewProvider.postMessage.getCall(1);
         assert.strictEqual(secondCall.args[0].command, MessageType.FOCUS_CHAT_INPUT);
     });
 
@@ -113,23 +113,23 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
         mockSelection.start.line = 5;
         mockSelection.end.line = 14; // 10 lines total
         mockDocument.getText = sinon.stub().returns('const smallSelection = "test";\nconsole.log(smallSelection);');
-        
+
         // Execute the askAboutSelection command handler logic
         executeAskAboutSelectionHandler(mockWebviewProvider);
-        
+
         // Verify: PREPARE_MESSAGE_WITH_CODE message sent
-        assert.strictEqual(mockWebviewProvider.sendMessageToWebview.callCount, 2);
-        
-        const firstCall = mockWebviewProvider.sendMessageToWebview.getCall(0);
+        assert.strictEqual(mockWebviewProvider.postMessage.callCount, 2);
+
+        const firstCall = mockWebviewProvider.postMessage.getCall(0);
         assert.strictEqual(firstCall.args[0].command, MessageType.PREPARE_MESSAGE_WITH_CODE);
-        
+
         const payload = firstCall.args[0].payload;
         assert.strictEqual(payload.content, 'const smallSelection = "test";\nconsole.log(smallSelection);');
         assert.strictEqual(payload.fileName, 'mockFile.ts');
         assert.strictEqual(payload.languageId, 'typescript');
-        
+
         // Verify focus message
-        const secondCall = mockWebviewProvider.sendMessageToWebview.getCall(1);
+        const secondCall = mockWebviewProvider.postMessage.getCall(1);
         assert.strictEqual(secondCall.args[0].command, MessageType.FOCUS_CHAT_INPUT);
     });
 
@@ -141,7 +141,7 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
         mockSelection.isEmpty = false;
         mockSelection.start.line = 1;
         mockSelection.end.line = 100; // 100 lines total
-        
+
         // Create a stub to ensure getCodeReferenceFromSelection is called
         const getCodeRefStub = sinon.stub().returns({
             id: 'large-selection-id',
@@ -152,30 +152,30 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
             selectedText: 'Large selection content...',
             languageId: 'typescript'
         });
-        
+
         mockCodeReferenceManager.getInstance = sinon.stub().returns({
             getCodeReferenceFromSelection: getCodeRefStub
         });
-        
+
         // Execute the askAboutSelection command handler logic
         executeAskAboutSelectionHandler(mockWebviewProvider);
-        
+
         // Verify: ADD_CODE_REFERENCE message is sent with the code reference
-        assert.strictEqual(mockWebviewProvider.sendMessageToWebview.callCount, 2);
-        
+        assert.strictEqual(mockWebviewProvider.postMessage.callCount, 2);
+
         // Check if getCodeReferenceFromSelection was called
         assert.strictEqual(getCodeRefStub.called, true, "getCodeReferenceFromSelection should be called");
-        
-        const firstCall = mockWebviewProvider.sendMessageToWebview.getCall(0);
+
+        const firstCall = mockWebviewProvider.postMessage.getCall(0);
         assert.strictEqual(firstCall.args[0].command, MessageType.ADD_CODE_REFERENCE);
-        
+
         const codeRef = firstCall.args[0].codeReference;
         assert.strictEqual(codeRef.fileName, 'mockFile.ts');
         assert.strictEqual(codeRef.startLine, 1);
         assert.strictEqual(codeRef.endLine, 100);
-        
+
         // Verify focus message
-        const secondCall = mockWebviewProvider.sendMessageToWebview.getCall(1);
+        const secondCall = mockWebviewProvider.postMessage.getCall(1);
         assert.strictEqual(secondCall.args[0].command, MessageType.FOCUS_CHAT_INPUT);
     });
 
@@ -189,14 +189,14 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
                 streamChatResponse: sinon.stub().resolves(new Response())
             })
         } as any);
-        
+
         // Store the original method to restore it after the test
         const originalSendChatRequest = (processor as any).sendChatRequest;
-        
+
         try {
             // Replace sendChatRequest with a simple stub that does nothing
             (processor as any).sendChatRequest = sinon.stub().resolves(new Response());
-            
+
             // Prepare test data
             const prependedCode: CodeReference = { // Explicitly type and conform to CodeReference
                 id: 'prepended-test-id',
@@ -207,7 +207,7 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
                 selectedText: 'const code = "small snippet";\nconsole.log(code);', // Renamed from content
                 languageId: 'typescript'
             };
-            
+
             // Call the method we're testing
             processor.sendMessage(
                 'Explain this code', // text
@@ -216,7 +216,7 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
                 'msg123', // messageId
                 'session123' // sessionId
             );
-            
+
             // Get the messages from ChatProcessor's internal state
             const internalMessages = (processor as any).currentMessages;
             assert.ok(internalMessages.length > 0, 'ChatProcessor should have at least one message');
@@ -298,12 +298,12 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
 
         // Send the appropriate message to the webview
         if (codeReferenceToSend) {
-            provider.sendMessageToWebview({
+            provider.postMessage({
                 command: MessageType.ADD_CODE_REFERENCE,
                 codeReference: codeReferenceToSend
             });
         } else if (prepayloadToSend) {
-            provider.sendMessageToWebview({
+            provider.postMessage({
                 command: MessageType.PREPARE_MESSAGE_WITH_CODE,
                 payload: prepayloadToSend
             });
@@ -312,7 +312,7 @@ suite('Enhanced Ask About Selection Feature Tests', () => {
         // Focus the chat view and input
         if (actionTaken) {
             // Skipping actual vscode.commands.executeCommand for tests
-            provider.sendMessageToWebview({
+            provider.postMessage({
                 command: MessageType.FOCUS_CHAT_INPUT
             });
         }
