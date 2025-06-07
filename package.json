@@ -79,10 +79,6 @@
         "title": "Hello World"
       },
       {
-        "command": "goose.start",
-        "title": "Start Goose"
-      },
-      {
         "command": "goose.startServer",
         "title": "Goose: Start Server"
       },
