@@ -62,9 +62,9 @@ ${codeBlock}${userQuery}
 </user-request>`;
 }
 
- /**
- * Handles communication with the Goose server for chat functionality
- */
+/**
+* Handles communication with the Goose server for chat functionality
+*/
 export class ChatProcessor {
     private serverManager: ServerManager;
     private eventEmitter: EventEmitter;
@@ -206,14 +206,14 @@ export class ChatProcessor {
                     if (line.startsWith('data:')) {
                         const jsonStr = line.substring(5).trim();
                         if (jsonStr === '[DONE]') {
-                            continue; 
+                            continue;
                         }
                         if (jsonStr) {
                             try {
                                 const eventData = JSON.parse(jsonStr) as MessageEvent;
                                 if (eventData.type === 'Message' && eventData.message) {
                                     aiMessage.content = eventData.message.content;
-                                    aiMessage.created = Date.now(); 
+                                    aiMessage.created = Date.now();
                                     this.emit(ChatEvents.MESSAGE_RECEIVED, { ...aiMessage });
                                 } else if (eventData.type === 'Error') {
                                     logger.error(`ChatProcessor: Stream error event: ${eventData.error}`);
@@ -243,7 +243,7 @@ export class ChatProcessor {
             this.abortController.abort();
             this.abortController = null;
         }
-        this.shouldStop = false;
+        this.shouldStop = true;
 
         if (this.currentMessages.length > 0) {
             const lastMessage = this.currentMessages[this.currentMessages.length - 1];
