@@ -144,24 +144,24 @@ export class ServerManager {
 
         // --- Load Configuration ---
         if (!this.configLoadAttempted) { // Attempt loading only once per instance lifecycle or restart
-             const config = readGooseConfig();
-             this.gooseProvider = config.provider;
-             this.gooseModel = config.model;
-             this.configLoadAttempted = true; // Mark as attempted
+            const config = readGooseConfig();
+            this.gooseProvider = config.provider;
+            this.gooseModel = config.model;
+            this.configLoadAttempted = true; // Mark as attempted
 
-             // --- Validate Configuration ---
-             if (!this.gooseProvider || !this.gooseModel) {
-                 const missing = [];
-                 if (!this.gooseProvider) { missing.push('GOOSE_PROVIDER'); }
-                 if (!this.gooseModel) { missing.push('GOOSE_MODEL'); }
-                 const errorMsg = `Goose: Failed to load required configuration (${missing.join(', ')}) from config file. Please ensure ~/.config/goose/config.yaml (or Windows equivalent) exists and contains valid GOOSE_PROVIDER and GOOSE_MODEL keys.`;
-                 this.logger.error(errorMsg);
-                 vscode.window.showErrorMessage(errorMsg);
-                 this.setStatus(ServerStatus.ERROR); // Set error status
-                 this.eventEmitter.emit(ServerEvents.ERROR, new Error(errorMsg)); // Emit error event
-                 return false; // Prevent server start
-             }
-             // --- End Validate Configuration ---
+            // --- Validate Configuration ---
+            if (!this.gooseProvider || !this.gooseModel) {
+                const missing = [];
+                if (!this.gooseProvider) { missing.push('GOOSE_PROVIDER'); }
+                if (!this.gooseModel) { missing.push('GOOSE_MODEL'); }
+                const errorMsg = `Goose: Failed to load required configuration (${missing.join(', ')}) from config file. Please ensure ~/.config/goose/config.yaml (or Windows equivalent) exists and contains valid GOOSE_PROVIDER and GOOSE_MODEL keys.`;
+                this.logger.error(errorMsg);
+                vscode.window.showErrorMessage(errorMsg);
+                this.setStatus(ServerStatus.ERROR); // Set error status
+                this.eventEmitter.emit(ServerEvents.ERROR, new Error(errorMsg)); // Emit error event
+                return false; // Prevent server start
+            }
+            // --- End Validate Configuration ---
         }
         // --- End Load Configuration ---
 
@@ -193,22 +193,22 @@ export class ServerManager {
             this.serverInfo = await this.startGoosedFn(serverConfig);
 
             // Set up process exit handler
-            this.serverInfo.process.on('close', (code, signal) => { 
+            this.serverInfo.process.on('close', (code, signal) => {
                 const exitReason = signal ? `signal ${signal}` : `code ${code}`;
                 this.logger.warn(`[ServerManager] 'close' event on server process: Process exited due to ${exitReason}.`);
-                
+
                 const wasRunningAndFullyStarted = this.serverFullyStarted;
                 const previousStatus = this.status;
 
-                this.serverInfo = null; 
-                this.apiClient = null;  
-                this.serverFullyStarted = false; 
-                this.configLoadAttempted = false; 
+                this.serverInfo = null;
+                this.apiClient = null;
+                this.serverFullyStarted = false;
+                this.configLoadAttempted = false;
 
                 if (previousStatus === ServerStatus.STOPPING || previousStatus === ServerStatus.STOPPED) {
                     this.logger.info(`[ServerManager] Server process exited during or after a stop sequence. Current status: ${previousStatus}. Final status: STOPPED.`);
                     this.setStatus(ServerStatus.STOPPED);
-                } else if (code !== null && code !== 0) { 
+                } else if (code !== null && code !== 0) {
                     this.logger.error(`[ServerManager] Server process exited unexpectedly with error code: ${code}. Previous status: ${previousStatus}. Setting status to ERROR.`);
                     this.setStatus(ServerStatus.ERROR);
                 } else if (code === null) { // Covers signals (where signal arg might be present) or other null code exits
@@ -216,7 +216,7 @@ export class ServerManager {
                     this.logger.warn(`[ServerManager] Server process exited unexpectedly ${reason}. Previous status: ${previousStatus}. Setting status to ERROR.`);
                     this.setStatus(ServerStatus.ERROR);
                 } else if (!wasRunningAndFullyStarted) { // code must be 0 here if this branch is reached
-                     this.logger.warn(`[ServerManager] Server process exited (code 0) but was not fully started. Previous status: ${previousStatus}. Setting status to ERROR.`);
+                    this.logger.warn(`[ServerManager] Server process exited (code 0) but was not fully started. Previous status: ${previousStatus}. Setting status to ERROR.`);
                     this.setStatus(ServerStatus.ERROR);
                 } else { // code === 0 AND wasRunningAndFullyStarted
                     this.logger.info(`[ServerManager] Server process exited cleanly (code 0) after being fully started. Previous status: ${previousStatus}. Setting status to STOPPED.`);
@@ -336,7 +336,7 @@ export class ServerManager {
         if (this.serverInfo?.process && this.status !== ServerStatus.STOPPING && this.status !== ServerStatus.STOPPED) {
             this.logger.info(`[ServerManager] stop() called. Current status: ${this.status}. Setting status to STOPPING.`);
             this.setStatus(ServerStatus.STOPPING); // Indicate we are in the process of stopping
-            this.serverFullyStarted = false; 
+            this.serverFullyStarted = false;
 
             try {
                 if (process.platform === 'win32' && this.serverInfo.process.pid) {
@@ -379,58 +379,7 @@ export class ServerManager {
         return this.apiClient;
     }
 
-    /**
-     * Get the server port
-     */
-    public getPort(): number | null {
-        return this.serverInfo?.port || null;
-    }
 
-    /**
-     * Send a chat message and stream the response
-     */
-    public async sendChatMessage(
-        messages: Message[],
-        abortController?: AbortController
-    ): Promise<Response | null> {
-        if (!this.apiClient || this.status !== ServerStatus.RUNNING) {
-            throw new Error('Server is not running');
-        }
-
-        try {
-            // Get the current workspace directory
-            let workingDir = process.cwd();
-
-            // If VSCode has an active workspace folder, use that instead
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (workspaceFolders && workspaceFolders.length > 0) {
-                workingDir = workspaceFolders[0].uri.fsPath;
-            }
-
-            const params = {
-                prompt: messages,
-                abortController: abortController,
-                sessionId: undefined, // No session ID for now
-                workspaceDirectory: workingDir
-            };
-
-            return await this.apiClient.streamChatResponse(params);
-        } catch (error) {
-            this.logger.error('Error sending chat message:', error);
-            this.eventEmitter.emit(ServerEvents.ERROR, error);
-            return null;
-        }
-    }
-
-    /**
-     * Get the server URL
-     */
-    public getServerUrl(): string | null {
-        if (this.serverInfo) {
-            return `http://127.0.0.1:${this.serverInfo.port}`;
-        }
-        return null;
-    }
 
     /**
      * Get the secret key

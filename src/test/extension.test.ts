@@ -135,13 +135,13 @@ suite('Extension Test Suite', () => {
         mockCodeRefManager.getCodeReferenceFromSelection.callsFake(() => {
             // Simulate the check for whitespace/empty that the real method does
             const editor = vscode.window.activeTextEditor;
-            if (!editor || editor.selection.isEmpty || (selectionText && selectionText.trim() === '')) {return null;}
+            if (!editor || editor.selection.isEmpty || (selectionText && selectionText.trim() === '')) { return null; }
             return mockSelectionRef;
         });
         mockCodeRefManager.getCodeReferenceForEntireFile.callsFake((doc: vscode.TextDocument) => {
             // Simulate the check for whitespace/empty that the real method does
             const text = doc.getText(); // Gets full text
-            if (!text || text.trim() === '') {return null;}
+            if (!text || text.trim() === '') { return null; }
             return mockFileRef;
         });
 
@@ -187,12 +187,12 @@ suite('Extension Test Suite', () => {
                 postMessageSpy.restore();
             }
             // Now, attempt to create the spy on the captured provider
-            if (capturedProvider && typeof capturedProvider.sendMessageToWebview === 'function') {
-                postMessageSpy = testEnv.sandbox.spy(capturedProvider, 'sendMessageToWebview');
-                console.log('Successfully spied on sendMessageToWebview.');
+            if (capturedProvider && typeof capturedProvider.postMessage === 'function') {
+                postMessageSpy = testEnv.sandbox.spy(capturedProvider, 'postMessage');
+                console.log('Successfully spied on postMessage.');
             } else {
                 // If spying fails, assign a stub and log warning
-                console.warn('Warning: Could not find sendMessageToWebview on captured provider. Assigning stub to postMessageSpy.');
+                console.warn('Warning: Could not find postMessage on captured provider. Assigning stub to postMessageSpy.');
                 postMessageSpy = testEnv.sandbox.stub();
             }
             return { dispose: sinon.stub() };

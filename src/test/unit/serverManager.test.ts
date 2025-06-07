@@ -73,7 +73,7 @@ suite('ServerManager Tests', () => {
         // Stub binary path resolver
         getBinaryPathStub = sinon.stub(require('../../utils/binaryPath'), 'getBinaryPath');
         getBinaryPathStub.callsFake(getTestBinaryPathResolver());
-        
+
         // Stub configReader to ensure tests don't rely on actual config files
         configReaderStub = testEnv.sandbox.stub(configReader, 'readGooseConfig');
         configReaderStub.returns({
@@ -188,7 +188,7 @@ suite('ServerManager Tests', () => {
 
             // Example of mocking a method that emits an event
         };
- 
+
         // Create the server manager with dependencies
         serverManager = new ServerManager(mockContext as vscode.ExtensionContext, {
             startGoosed: startGoosedStub,
@@ -207,7 +207,7 @@ suite('ServerManager Tests', () => {
     teardown(() => {
         getBinaryPathStub.restore();
         testEnv.cleanup();
-        if (showErrorMessageStub) {showErrorMessageStub.restore();}
+        if (showErrorMessageStub) { showErrorMessageStub.restore(); }
     });
 
     test('should have stopped status initially', () => {
@@ -243,11 +243,14 @@ suite('ServerManager Tests', () => {
         sinon.assert.calledWith(mockApiClient.createAgent, 'test-provider', 'test-model');
     });
 
-    test('should return server port after started', async () => {
+    test('should initialize ApiClient correctly after started', async () => {
         await serverManager.start();
-        const port = serverManager.getPort();
-        assert.strictEqual(port, 8000);
+        const apiClient = serverManager.getApiClient();
+        assert.ok(apiClient, 'ApiClient should be initialized');
+        // Verify the ApiClient was created with the correct configuration by checking it was called with the expected port
         sinon.assert.calledOnce(startGoosedStub);
+        // The MockApiClient has a public baseUrl property we can check
+        assert.strictEqual((apiClient as any).baseUrl, 'http://127.0.0.1:8000');
     });
 
     test('should handle errors during server start', async () => {
@@ -291,7 +294,7 @@ suite('ServerManager Tests', () => {
         // Start server - configureAgent should fail internally but start() should catch
         let startResult: boolean | undefined;
         try {
-             startResult = await serverManager.start();
+            startResult = await serverManager.start();
         } catch (err: any) {
             caughtError = err;
             console.error("*** TEST CAUGHT ERROR ***", err); // Log if test catches it
@@ -388,7 +391,7 @@ suite('ServerManager Tests', () => {
         await serverManager.start();
 
         // Verify that the provider and model from config are passed to the API client
-        sinon.assert.calledWith(mockApiClient.createAgent, 'test-provider', 'test-model'); 
+        sinon.assert.calledWith(mockApiClient.createAgent, 'test-provider', 'test-model');
     });
 
     test('should fail to start when GOOSE_PROVIDER is missing', async () => {
@@ -408,13 +411,13 @@ suite('ServerManager Tests', () => {
         // Verify the server fails to start
         assert.strictEqual(result, false, 'Server should fail to start with missing provider');
         assert.strictEqual(serverManager.getStatus(), ServerStatus.ERROR);
-        
+
         // Verify error is shown to user
         sinon.assert.calledOnce(showErrorMessageStub);
         sinon.assert.calledOnce(errorListener);
-        
+
         // Verify the error message mentions the missing key
-        sinon.assert.calledWith(showErrorMessageStub, 
+        sinon.assert.calledWith(showErrorMessageStub,
             sinon.match.string.and(sinon.match('GOOSE_PROVIDER')));
     });
 
@@ -435,13 +438,13 @@ suite('ServerManager Tests', () => {
         // Verify the server fails to start
         assert.strictEqual(result, false, 'Server should fail to start with missing model');
         assert.strictEqual(serverManager.getStatus(), ServerStatus.ERROR);
-        
+
         // Verify error is shown to user
         sinon.assert.calledOnce(showErrorMessageStub);
         sinon.assert.calledOnce(errorListener);
-        
+
         // Verify the error message mentions the missing key
-        sinon.assert.calledWith(showErrorMessageStub, 
+        sinon.assert.calledWith(showErrorMessageStub,
             sinon.match.string.and(sinon.match('GOOSE_MODEL')));
     });
 
@@ -455,27 +458,27 @@ suite('ServerManager Tests', () => {
         });
 
         await serverManager.start();
-        
+
         // Verify first provider/model used
-        sinon.assert.calledWith(mockApiClient.createAgent, 'first-provider', 'first-model'); 
-        
+        sinon.assert.calledWith(mockApiClient.createAgent, 'first-provider', 'first-model');
+
         // Reset call history for next verification
         mockApiClient.createAgent.resetHistory();
         startGoosedStub.resetHistory(); // Also reset the startGoosed stub if checking its calls
-        
+
         // Stop the first server instance
         await serverManager.stop();
-        
+
         // Change config stub for the *next* read
         configReaderStub.onSecondCall().returns({
             provider: 'second-provider',
             model: 'second-model'
         });
-        
+
         // Start the second server - should read the new config
         await serverManager.start();
-        
+
         // Verify second provider/model used
-        sinon.assert.calledWith(mockApiClient.createAgent, 'second-provider', 'second-model'); 
+        sinon.assert.calledWith(mockApiClient.createAgent, 'second-provider', 'second-model');
     });
 });

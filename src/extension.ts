@@ -669,55 +669,10 @@ export class GooseViewProvider implements vscode.WebviewViewProvider {
 		return indexHtml;
 	}
 
-	/**
-	 * Adds a code reference to the chat input
-	 */
-	public addCodeReference() {
-		const codeReference = this._codeReferenceManager.getCodeReferenceFromSelection();
-		if (codeReference) {
-			this.postMessage({
-				command: MessageType.ADD_CODE_REFERENCE,
-				codeReference
-			});
-		} else {
-			vscode.window.showInformationMessage('Please select some code first');
-		}
-	}
 
-	/**
-	 * Adds the current diagnostics to the chat
-	 */
-	public async addCurrentDiagnostics() {
-		const diagnostics = this._workspaceContextProvider.getCurrentDiagnostics();
-		const formattedDiagnostics = this._workspaceContextProvider.formatDiagnostics(diagnostics);
-		const currentFile = this._workspaceContextProvider.getCurrentFileName();
 
-		if (diagnostics.length === 0) {
-			this.postMessage({
-				command: MessageType.CHAT_MESSAGE,
-				text: `No issues found in ${currentFile || 'the current file'}.`
-			});
-		} else {
-			this.postMessage({
-				command: MessageType.CHAT_MESSAGE,
-				text: `Please help me fix these issues in ${currentFile || 'my code'}:\n\n${formattedDiagnostics}`
-			});
-		}
 
-		vscode.commands.executeCommand('goose.chatView.focus');
-	}
 
-	// Add event handler to confirm message was sent to webview
-	// This method seems redundant now with the public postMessage.
-	// Keeping it for now if it's used externally, but consider removing if not.
-	public async sendMessageToWebview(message: any): Promise<boolean> {
-		// For now, let's assume it should use the new public postMessage logic.
-		// However, postMessage is void, so this signature needs to change or the method needs a different purpose.
-		// For now, just calling postMessage and returning a placeholder.
-		// This needs review based on how sendMessageToWebview is used.
-		this.postMessage(message);
-		return Promise.resolve(true); // Placeholder, as postMessage is void.
-	}
 }
 
 // --- Exportable Handler Logic --- 
