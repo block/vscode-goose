@@ -12,15 +12,8 @@ permissions:
 on:
   push:
     branches: [ main ]
-    tags:
-      - 'vscode-v*' # Trigger release job on tag push
   # Removed pull_request trigger - handled by pr-checks.yml
-  workflow_dispatch: # Keep for manual releases/testing
-    inputs:
-      version:
-        description: 'Version to release (e.g., 0.1.0)'
-        required: true
-        type: string
+  workflow_dispatch: # Keep for manual testing
 
 jobs:
   # This job runs ONLY on pushes to the main branch
@@ -31,6 +24,9 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,6 +35,7 @@ jobs:
       - name: List files in workspace # Debug step
         run: ls -la
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           config-file: release-please-config.json
           token: ${{ secrets.RELEASE_PLEASE_PAT }} # Use PAT to allow triggering PR checks
@@ -80,17 +77,15 @@ jobs:
       - name: Compile extension and webview
         run: npm run compile # This includes build:webview
 
-  # This job runs ONLY on tag pushes
-  release:
+  # This job runs when Release Please creates a release
+  release-created:
     name: Build and Release Extension
-    # Removed 'needs: test' - relies on tests passing on main/PRs
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/vscode-v')
+    if: needs.release-please.outputs.release_created == 'true'
+    needs: release-please
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }} # Checkout the specific tag
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -98,10 +93,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Get Version from Tag
+      - name: Get Version from Release Please
         id: version
         run: |
-          VERSION="${GITHUB_REF#refs/tags/vscode-v}"
+          VERSION="${{ needs.release-please.outputs.tag_name }}"
+          VERSION="${VERSION#vscode-v}"  # Remove vscode-v prefix
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $VERSION"
 
@@ -125,14 +121,11 @@ jobs:
           fi
           ls -l dist
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2.0.8
-        with:
-          tag_name: ${{ github.ref_name }}
-          generate_release_notes: false # Changelog is maintained separately
-          files: dist/*.vsix
+      - name: Upload Release Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ needs.release-please.outputs.tag_name }} dist/*.vsix
 
       - name: Publish to VS Code Marketplace
         if: success() && env.VSCE_PAT != null
