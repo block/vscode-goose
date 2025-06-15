@@ -1,6 +1,6 @@
 {
   "packages": {
-    "vscode-extension": {
+    ".": {
       "component": "vscode-extension",
       "release-type": "node",
       "package-name": "vscode-goose",
@@ -9,7 +9,7 @@
       "bump-patch-for-minor-pre-major": true,
       "tag-separator": "vscode-v",
       "include-component-in-tag": false,
-      "bootstrap-sha": "00a0b8f71c2aed90f4f0f3e59fca2833a75a19fe",
+      "bootstrap-sha": "1177248544706636f579ba3ffdc754b13dd1dec4",
       "extra-files": [
         "package.json",
         "webview-ui/package.json"
