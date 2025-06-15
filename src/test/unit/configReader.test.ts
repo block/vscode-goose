@@ -183,11 +183,12 @@ describe('ConfigReader Tests', () => {
         const pathUsed = readFileSpy.firstCall.args[0];
         
         assert.ok(
-            pathUsed.includes('AppData') && 
-            pathUsed.includes('Roaming') && 
+            pathUsed.includes('AppData') &&
+            pathUsed.includes('Roaming') &&
             pathUsed.includes('Block') &&
             pathUsed.includes('goose') &&
-            pathUsed.includes('config')
+            pathUsed.includes('config') &&
+            pathUsed.endsWith('config.yaml')
         );
         
         // Restore environment
@@ -195,6 +196,45 @@ describe('ConfigReader Tests', () => {
             process.env.APPDATA = originalAppData;
         } else {
             delete process.env.APPDATA;
+        }
+    });
+
+    it('should fallback to Roaming when APPDATA is undefined', () => {
+        const readFileSpy = sinon.spy();
+
+        const mockWinOs: OS = {
+            homedir: () => 'C:\\Users\\test',
+            platform: () => 'win32'
+        };
+
+        const mockWinFs: FileSystem = {
+            existsSync: () => true,
+            readFileSync: (path) => {
+                readFileSpy(path);
+                return 'GOOSE_PROVIDER: "databricks"\nGOOSE_MODEL: "claude-3-7-sonnet"';
+            }
+        };
+
+        // Ensure APPDATA is undefined
+        const originalAppData = process.env.APPDATA;
+        delete process.env.APPDATA;
+
+        readGooseConfig(mockWinFs, mockWinOs);
+
+        sinon.assert.calledOnce(readFileSpy);
+        const pathUsed = readFileSpy.firstCall.args[0];
+
+        assert.ok(
+            pathUsed.includes('AppData') &&
+            pathUsed.includes('Roaming') &&
+            pathUsed.includes('Block') &&
+            pathUsed.includes('goose') &&
+            pathUsed.includes('config') &&
+            pathUsed.endsWith('config.yaml')
+        );
+
+        if (originalAppData) {
+            process.env.APPDATA = originalAppData;
         }
     });
 });

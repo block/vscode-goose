@@ -38,13 +38,10 @@ export function getConfigPath(os: OS = osDefault): string | null {
 
     switch (os.platform()) {
         case 'win32':
-            // Windows path: ~\AppData\Roaming\Block\goose\config\config.yaml
-            const appData = process.env.APPDATA;
-            if (!appData) {
-                logger.error('Could not determine APPDATA directory on Windows.');
-                return null; // Return null if APPDATA is not set
-            }
-            // Use appData instead of homeDir for the base path on Windows
+            // Windows path: %APPDATA%\Block\goose\config\config.yaml
+            // Fallback to the typical Roaming path if APPDATA is undefined
+            const appData = process.env.APPDATA ||
+                path.join(homeDir, 'AppData', 'Roaming');
             configPath = path.join(appData, 'Block', 'goose', 'config', 'config.yaml');
             break;
         case 'darwin': // macOS

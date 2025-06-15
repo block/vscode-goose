@@ -8,7 +8,7 @@ For architectural details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 1. Clone the repository
 2. Navigate to the project root directory
-3. Install dependencies: `npm install`
+3. Install dependencies: `npm install` (this installs devDependencies like `rimraf` used by build and test scripts)
 4. Install webview dependencies: `cd webview-ui && npm install && cd ..`
 5. Build the extension and webview: `npm run compile`
 6. Open the project root in VSCode: `code .`
