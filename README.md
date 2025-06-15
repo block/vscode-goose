@@ -88,6 +88,16 @@ This extension contributes the following settings:
 
 * `goose.enable`: enable/disable this extension
 
+## Configuration File Location
+
+Goose's CLI and this extension look for a configuration file containing
+`GOOSE_PROVIDER` and `GOOSE_MODEL` values. The default locations are:
+
+* **Linux/macOS:** `~/.config/goose/config.yaml`
+* **Windows:** `%APPDATA%\Block\goose\config\config.yaml` (e.g. `C:\Users\<you>\AppData\Roaming\Block\goose\config\config.yaml`)
+
+Ensure this file exists and is populated with valid values before starting the extension.
+
 ----
 
 ## Support
