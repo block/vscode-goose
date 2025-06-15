@@ -9,7 +9,7 @@
       "bump-patch-for-minor-pre-major": true,
       "tag-separator": "vscode-v",
       "include-component-in-tag": false,
-      "bootstrap-sha": "1177248544706636f579ba3ffdc754b13dd1dec4",
+      "bootstrap-sha": "f4be3380275d551d7ebca1156e04d71f44036df4",
       "extra-files": [
         "package.json",
         "webview-ui/package.json"

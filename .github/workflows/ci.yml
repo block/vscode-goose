@@ -18,7 +18,7 @@ on:
 jobs:
   # This job runs ONLY on pushes to the main branch
   release-please:
-    name: Create Release PR
+    name: Release Please
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -32,14 +32,65 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for release-please
-      - name: List files in workspace # Debug step
-        run: ls -la
-      - uses: googleapis/release-please-action@v4
+      
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v4
         id: release
         with:
           config-file: release-please-config.json
-          token: ${{ secrets.RELEASE_PLEASE_PAT }} # Use PAT to allow triggering PR checks
-          skip-labeling: true
+          token: ${{ secrets.RELEASE_PLEASE_PAT }}
+          
+      # The following steps only run if a release was created
+      - name: Setup Node.js
+        if: steps.release.outputs.release_created
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies (Root)
+        if: steps.release.outputs.release_created
+        run: npm ci --no-fund --no-audit
+
+      - name: Install Dependencies (Webview)
+        if: steps.release.outputs.release_created
+        run: npm ci --no-fund --no-audit --prefix webview-ui
+
+      - name: Build Extension and Webview
+        if: steps.release.outputs.release_created
+        run: npm run compile
+
+      - name: Package Extension
+        if: steps.release.outputs.release_created
+        run: |
+          mkdir -p dist
+          VERSION="${{ steps.release.outputs.tag_name }}"
+          VERSION="${VERSION#vscode-v}"  # Remove vscode-v prefix
+          PACKAGE_FILENAME="dist/vscode-goose-${VERSION}.vsix"
+          npx @vscode/vsce package --no-yarn -o "$PACKAGE_FILENAME"
+          if [ ! -f "$PACKAGE_FILENAME" ]; then
+            echo "Failed to create the VSIX package: $PACKAGE_FILENAME"
+            exit 1
+          fi
+          ls -l dist
+
+      - name: Upload Release Assets
+        if: steps.release.outputs.release_created
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ steps.release.outputs.tag_name }} dist/*.vsix
+
+      - name: Publish to VS Code Marketplace
+        if: steps.release.outputs.release_created && env.VSCE_PAT != null
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          VERSION="${{ steps.release.outputs.tag_name }}"
+          VERSION="${VERSION#vscode-v}"  # Remove vscode-v prefix
+          PACKAGE_FILENAME="dist/vscode-goose-${VERSION}.vsix"
+          echo "Publishing $PACKAGE_FILENAME to VS Code Marketplace..."
+          npx @vscode/vsce publish --packagePath "$PACKAGE_FILENAME" --pat $VSCE_PAT
 
   # This job runs ONLY on pushes to the main branch
   test-on-main:
@@ -76,62 +127,3 @@ jobs:
 
       - name: Compile extension and webview
         run: npm run compile # This includes build:webview
-
-  # This job runs when Release Please creates a release
-  release-created:
-    name: Build and Release Extension
-    runs-on: ubuntu-latest
-    if: needs.release-please.outputs.release_created == 'true'
-    needs: release-please
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Get Version from Release Please
-        id: version
-        run: |
-          VERSION="${{ needs.release-please.outputs.tag_name }}"
-          VERSION="${VERSION#vscode-v}"  # Remove vscode-v prefix
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
-      - name: Install Dependencies (Root)
-        run: npm ci --no-fund --no-audit
-
-      - name: Install Dependencies (Webview)
-        run: npm ci --no-fund --no-audit --prefix webview-ui
-
-      - name: Build Extension and Webview
-        run: npm run compile
-
-      - name: Package Extension
-        run: |
-          mkdir -p dist
-          PACKAGE_FILENAME="dist/vscode-goose-${{ steps.version.outputs.version }}.vsix"
-          npx @vscode/vsce package --no-yarn -o "$PACKAGE_FILENAME"
-          if [ ! -f "$PACKAGE_FILENAME" ]; then
-            echo "Failed to create the VSIX package: $PACKAGE_FILENAME"
-            exit 1
-          fi
-          ls -l dist
-
-      - name: Upload Release Assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ needs.release-please.outputs.tag_name }} dist/*.vsix
-
-      - name: Publish to VS Code Marketplace
-        if: success() && env.VSCE_PAT != null
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: |
-          PACKAGE_FILENAME="dist/vscode-goose-${{ steps.version.outputs.version }}.vsix"
-          echo "Publishing $PACKAGE_FILENAME to VS Code Marketplace..."
-          npx @vscode/vsce publish --packagePath "$PACKAGE_FILENAME" --pat $VSCE_PAT
