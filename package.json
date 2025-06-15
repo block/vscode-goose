@@ -2,7 +2,7 @@
   "name": "vscode-goose",
   "displayName": "VS Code Goose",
   "description": "Goose AI for VSCode",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "repository": {
     "type": "git",
     "url": "https://github.com/block/vscode-goose"
