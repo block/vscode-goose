@@ -9,7 +9,10 @@ on:
 jobs:
   test:
     name: Lint and Test (PR)
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout Repository
         # Checks out the code from the PR branch
@@ -31,14 +34,23 @@ jobs:
           npm run lint
 
       - name: Install Xvfb
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
 
-      - name: Run Tests with Xvfb
+      - name: Run Tests (Linux)
+        if: runner.os == 'Linux'
         run: |
-          # Run standard tests and the package activation test
           xvfb-run -a sh -c "npm run test:all && npm run test:package"
 
+      - name: Run Tests (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          npm run test:all
+          npm run test:package
+
       - name: Compile extension and webview
+        shell: bash
         run: npm run compile # This includes build:webview

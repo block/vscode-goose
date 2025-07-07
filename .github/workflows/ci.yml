@@ -96,7 +96,10 @@ jobs:
   test-on-main:
     name: Lint and Test (Main)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -117,13 +120,23 @@ jobs:
           npm run lint
 
       - name: Install Xvfb
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
 
-      - name: Run Tests with Xvfb
+      - name: Run Tests (Linux)
+        if: runner.os == 'Linux'
         run: |
           xvfb-run -a sh -c "npm run test:all && npm run test:package"
 
+      - name: Run Tests (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          npm run test:all
+          npm run test:package
+
       - name: Compile extension and webview
+        shell: bash
         run: npm run compile # This includes build:webview
