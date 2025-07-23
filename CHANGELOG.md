@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.21](https://github.com/block/vscode-goose/compare/v0.1.20...v0.1.21) (2025-07-23)
+
+
+### Bug Fixes
+
+* change to description to avoid brand confusion ([#18](https://github.com/block/vscode-goose/issues/18)) ([7269453](https://github.com/block/vscode-goose/commit/7269453bde848484b4f0e09a424d40c861a49686))
+
 ## [0.1.20](https://github.com/block/vscode-goose/compare/v0.1.19...v0.1.20) (2025-06-15)
 
 
